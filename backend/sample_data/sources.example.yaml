@@ -1,0 +1,15 @@
+﻿sources:
+  - name: greenhouse-example
+    connector_type: greenhouse
+    display_name: Example Greenhouse Board
+    is_enabled: true
+    sync_interval_minutes: 180
+    config:
+      board_token: example-company
+  - name: lever-example
+    connector_type: lever
+    display_name: Example Lever Board
+    is_enabled: true
+    sync_interval_minutes: 180
+    config:
+      company: example-company

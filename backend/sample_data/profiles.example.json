@@ -1,0 +1,17 @@
+﻿[
+  {
+    "name": "Backend Engineer",
+    "description": "Focus on Python, APIs, and distributed systems.",
+    "target_roles": ["backend engineer", "software engineer"],
+    "preferred_locations": ["Remote", "New York, NY"],
+    "remote_preference": "remote_or_hybrid",
+    "target_keywords": ["python", "sql", "microservices"],
+    "avoid_keywords": ["contract-only"],
+    "skills": ["python", "fastapi", "postgresql"],
+    "seniority_preferences": ["mid", "senior"],
+    "authorization_notes": "Needs transparent sponsorship or authorization details.",
+    "company_preferences": ["developer tools", "platform"],
+    "scoring_weights": {"skills": 0.35, "role": 0.25, "location": 0.15, "preferences": 0.25},
+    "is_active": true
+  }
+]
