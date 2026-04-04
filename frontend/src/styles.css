@@ -162,6 +162,16 @@ td {
   font: inherit;
 }
 
+.upload-form textarea,
+textarea {
+  border: 1px solid rgba(20, 33, 61, 0.15);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  resize: vertical;
+  min-height: 120px;
+}
+
 .upload-form button {
   width: fit-content;
   border: 0;
@@ -201,6 +211,57 @@ td {
   margin: 0;
 }
 
+.two-column-form {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.split-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.split-header input {
+  min-width: 220px;
+  border: 1px solid rgba(20, 33, 61, 0.15);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.action-row.wrap {
+  flex-wrap: wrap;
+}
+
+.card button {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.75rem 1.1rem;
+  background: #14213d;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 pre {
   white-space: pre-wrap;
   word-break: break-word;
@@ -216,5 +277,9 @@ pre {
 
   .hero {
     grid-template-columns: 1fr;
+  }
+
+  .split-header {
+    flex-direction: column;
   }
 }

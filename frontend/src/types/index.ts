@@ -1,4 +1,4 @@
-﻿export type JobScore = {
+export type JobScore = {
   id: number;
   profile_id: number;
   fit_score: number;
@@ -10,6 +10,7 @@
   recommendation: string;
   resume_keywords: string[];
   resume_tailoring_suggestions: string[];
+  outreach_message?: string | null;
 };
 
 export type JobNote = {
@@ -73,6 +74,18 @@ export type Source = {
   sync_interval_minutes: number;
   last_status?: string | null;
   last_synced_at?: string | null;
+};
+
+export type ConnectorRun = {
+  id: number;
+  connector_name: string;
+  status: string;
+  message?: string | null;
+  fetched_count: number;
+  created_count: number;
+  deduped_count: number;
+  started_at: string;
+  completed_at?: string | null;
 };
 
 export type AnalyticsSummary = {

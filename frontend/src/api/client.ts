@@ -1,25 +1,33 @@
-﻿const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "http://127.0.0.1:8000";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (!(init?.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers,
   });
+
   if (!response.ok) {
+    let message = `Request failed: ${response.status}`;
     try {
       const payload = (await response.json()) as { detail?: string };
-      throw new Error(payload.detail || `Request failed: ${response.status}`);
+      if (payload.detail) {
+        message = payload.detail;
+      }
     } catch {
-      throw new Error(`Request failed: ${response.status}`);
+      // Keep fallback message.
     }
+    throw new Error(message);
   }
+
   if (response.status === 204) {
     return undefined as T;
   }
+
   return response.json() as Promise<T>;
 }
 
@@ -28,15 +36,21 @@ export const api = {
   getJobs: () => request<{ items: unknown[]; total: number }>("/jobs"),
   getJob: (id: number) => request(`/jobs/${id}`),
   importUrl: (payload: unknown) => request("/jobs/import-url", { method: "POST", body: JSON.stringify(payload) }),
-  updateJobStatus: (id: number, status: string) => request(`/jobs/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
-  addJobNote: (id: number, content: string) => request(`/jobs/${id}/notes`, { method: "PATCH", body: JSON.stringify({ content }) }),
+  updateJobStatus: (id: number, status: string) =>
+    request(`/jobs/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  addJobNote: (id: number, content: string) =>
+    request(`/jobs/${id}/notes`, { method: "PATCH", body: JSON.stringify({ content }) }),
   scoreJob: (id: number) => request(`/jobs/${id}/score`, { method: "POST" }),
+  scoreJobAgainstProfile: (id: number, profileId: number) =>
+    request(`/jobs/${id}/score-against-profile/${profileId}`, { method: "POST" }),
   getProfiles: () => request("/profiles"),
   createProfile: (payload: unknown) => request("/profiles", { method: "POST", body: JSON.stringify(payload) }),
   getResumes: () => request("/resumes"),
   createResume: (payload: unknown) => request("/resumes", { method: "POST", body: JSON.stringify(payload) }),
   uploadResume: (payload: FormData) => request("/resumes/upload", { method: "POST", body: payload }),
   getSources: () => request("/sources"),
+  updateSource: (name: string, payload: unknown) =>
+    request(`/sources/${name}`, { method: "PATCH", body: JSON.stringify(payload) }),
   runSync: (payload: unknown) => request("/sync/run", { method: "POST", body: JSON.stringify(payload) }),
   getRuns: () => request("/sync/runs"),
   getSettings: () => request("/settings"),
