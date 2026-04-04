@@ -34,17 +34,16 @@ export function SourcesPage() {
     }
   }
 
-  async function saveConfig(source: Source, rawValue: string) {
+  async function saveSource(source: Source, nextConfig: Record<string, unknown>) {
     setSavingSource(source.name);
     setError(null);
     setMessage(null);
     try {
-      const parsed = JSON.parse(rawValue) as Record<string, unknown>;
-      await api.updateSource(source.name, { config: parsed });
-      setMessage(`Saved config for ${source.display_name}.`);
+      await api.updateSource(source.name, { config: nextConfig });
+      setMessage(`Saved settings for ${source.display_name}.`);
       await loadData();
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save source config.");
+      setError(saveError instanceof Error ? saveError.message : "Could not save source settings.");
     } finally {
       setSavingSource(null);
     }
@@ -54,8 +53,10 @@ export function SourcesPage() {
     <div className="page">
       <section className="card">
         <div className="section-title">
-          <h2>Source management</h2>
-          <p className="muted">Enable or disable sources and edit connector config without leaving the app.</p>
+          <h2>Connect job sources</h2>
+          <p className="muted">
+            Start with Greenhouse and Lever. Turn a source on, then add the company-specific identifier it needs.
+          </p>
         </div>
         {error ? <p className="error-text">{error}</p> : null}
         {message ? <p className="success-text">{message}</p> : null}
@@ -65,17 +66,17 @@ export function SourcesPage() {
             source={source}
             isSaving={savingSource === source.name}
             onToggle={() => void toggleSource(source)}
-            onSaveConfig={(rawValue) => void saveConfig(source, rawValue)}
+            onSave={(nextConfig) => void saveSource(source, nextConfig)}
           />
         ))}
       </section>
 
       <section className="card">
         <div className="section-title">
-          <h2>Recent connector runs</h2>
-          <p className="muted">This helps confirm whether sync worked and whether jobs were deduplicated or created.</p>
+          <h2>Recent sync activity</h2>
+          <p className="muted">This helps you confirm whether a sync worked and how many jobs were added.</p>
         </div>
-        {runs.length === 0 ? <p className="muted">No connector runs yet.</p> : null}
+        {runs.length === 0 ? <p className="muted">No sync history yet. Run sync from the dashboard after setting up a source.</p> : null}
         {runs.map((run) => (
           <article key={run.id} className="stack-card">
             <strong>{run.connector_name}</strong>
@@ -94,18 +95,38 @@ function SourceCard({
   source,
   isSaving,
   onToggle,
-  onSaveConfig,
+  onSave,
 }: {
   source: Source;
   isSaving: boolean;
   onToggle: () => void;
-  onSaveConfig: (rawValue: string) => void;
+  onSave: (nextConfig: Record<string, unknown>) => void;
 }) {
-  const [rawConfig, setRawConfig] = useState(JSON.stringify(source.config, null, 2));
+  const [boardToken, setBoardToken] = useState(String(source.config.board_token ?? ""));
+  const [company, setCompany] = useState(String(source.config.company ?? ""));
+  const [careersUrl, setCareersUrl] = useState(String(source.config.careers_url ?? ""));
 
   useEffect(() => {
-    setRawConfig(JSON.stringify(source.config, null, 2));
+    setBoardToken(String(source.config.board_token ?? ""));
+    setCompany(String(source.config.company ?? ""));
+    setCareersUrl(String(source.config.careers_url ?? ""));
   }, [source.config]);
+
+  function saveFriendlyConfig() {
+    if (source.connector_type === "greenhouse") {
+      onSave({ board_token: boardToken.trim() });
+      return;
+    }
+    if (source.connector_type === "lever") {
+      onSave({ company: company.trim() });
+      return;
+    }
+    if (source.connector_type === "generic_company") {
+      onSave({ careers_url: careersUrl.trim() });
+      return;
+    }
+    onSave(source.config);
+  }
 
   return (
     <article className="stack-card">
@@ -113,20 +134,60 @@ function SourceCard({
         <div>
           <strong>{source.display_name}</strong>
           <p className="muted">
-            {source.connector_type} · {source.is_enabled ? "enabled" : "disabled"} · every {source.sync_interval_minutes}
-            m
+            {source.connector_type} · {source.is_enabled ? "enabled" : "disabled"} · checks every {source.sync_interval_minutes} minutes
           </p>
         </div>
         <button onClick={onToggle} disabled={isSaving}>
-          {isSaving ? "Saving..." : source.is_enabled ? "Disable" : "Enable"}
+          {isSaving ? "Saving..." : source.is_enabled ? "Turn off" : "Turn on"}
         </button>
       </div>
-      <textarea value={rawConfig} onChange={(event) => setRawConfig(event.target.value)} rows={8} />
-      <div className="action-row">
-        <button onClick={() => onSaveConfig(rawConfig)} disabled={isSaving}>
-          Save Config
-        </button>
-      </div>
+
+      {source.connector_type === "greenhouse" ? (
+        <div className="friendly-form">
+          <label>
+            Greenhouse board token
+            <input value={boardToken} onChange={(event) => setBoardToken(event.target.value)} placeholder="company-name" />
+          </label>
+          <p className="muted">Example: for `company-name.greenhouse.io`, enter `company-name`.</p>
+        </div>
+      ) : null}
+
+      {source.connector_type === "lever" ? (
+        <div className="friendly-form">
+          <label>
+            Lever company slug
+            <input value={company} onChange={(event) => setCompany(event.target.value)} placeholder="company-name" />
+          </label>
+          <p className="muted">Example: for `jobs.lever.co/company-name`, enter `company-name`.</p>
+        </div>
+      ) : null}
+
+      {source.connector_type === "generic_company" ? (
+        <div className="friendly-form">
+          <label>
+            Careers page URL
+            <input
+              value={careersUrl}
+              onChange={(event) => setCareersUrl(event.target.value)}
+              placeholder="https://company.com/careers"
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {!["greenhouse", "lever", "generic_company"].includes(source.connector_type) ? (
+        <p className="muted">
+          This source is still experimental. You can leave it off for now unless you are testing custom behavior.
+        </p>
+      ) : null}
+
+      {["greenhouse", "lever", "generic_company"].includes(source.connector_type) ? (
+        <div className="action-row">
+          <button onClick={saveFriendlyConfig} disabled={isSaving}>
+            Save settings
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }

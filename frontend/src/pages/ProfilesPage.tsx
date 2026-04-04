@@ -17,16 +17,34 @@ type ProfileFormState = {
   authorization_notes: string;
 };
 
+const starterTemplates = [
+  {
+    name: "Software Engineer",
+    target_roles: "software engineer, backend engineer, full stack engineer",
+    skills: "python, javascript, sql, api",
+  },
+  {
+    name: "AI / ML Engineer",
+    target_roles: "ai engineer, ml engineer, machine learning engineer",
+    skills: "python, pytorch, llm, data pipelines",
+  },
+  {
+    name: "Data Engineer",
+    target_roles: "data engineer, analytics engineer, platform engineer",
+    skills: "python, sql, airflow, warehousing",
+  },
+];
+
 const initialProfileState: ProfileFormState = {
   name: "",
   description: "",
   target_roles: "",
-  preferred_locations: "",
+  preferred_locations: "Remote",
   remote_preference: "remote_or_hybrid",
   target_keywords: "",
   avoid_keywords: "",
   skills: "",
-  seniority_preferences: "",
+  seniority_preferences: "mid, senior",
   company_preferences: "",
   authorization_notes: "",
 };
@@ -53,10 +71,19 @@ export function ProfilesPage() {
     void loadProfiles();
   }, []);
 
+  function applyTemplate(template: (typeof starterTemplates)[number]) {
+    setForm((state) => ({
+      ...state,
+      name: template.name,
+      target_roles: template.target_roles,
+      skills: template.skills,
+    }));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim()) {
-      setError("Profile name is required.");
+      setError("Give this profile a simple name, like Software Engineer or Data Engineer.");
       return;
     }
 
@@ -81,7 +108,7 @@ export function ProfilesPage() {
         is_active: true,
       });
       setForm(initialProfileState);
-      setMessage("Profile created successfully.");
+      setMessage("Profile created. Jobs can now be ranked against it.");
       await loadProfiles();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Could not create profile.");
@@ -94,31 +121,51 @@ export function ProfilesPage() {
     <div className="page">
       <section className="card">
         <div className="section-title">
-          <h2>Create a search profile</h2>
-          <p className="muted">Define one role track at a time, then score the same job against multiple profiles.</p>
+          <h2>Set up a search profile</h2>
+          <p className="muted">
+            A profile is one kind of job you want. Create one for each path you care about, like Software Engineer or
+            AI Engineer.
+          </p>
+        </div>
+        <div className="template-row">
+          {starterTemplates.map((template) => (
+            <button key={template.name} type="button" className="secondary-button" onClick={() => applyTemplate(template)}>
+              Use {template.name}
+            </button>
+          ))}
         </div>
         <form className="upload-form two-column-form" onSubmit={(event) => void handleSubmit(event)}>
           <label>
             Profile name
-            <input value={form.name} onChange={(event) => setForm((state) => ({ ...state, name: event.target.value }))} />
+            <input
+              value={form.name}
+              onChange={(event) => setForm((state) => ({ ...state, name: event.target.value }))}
+              placeholder="Software Engineer"
+            />
           </label>
           <label>
             Remote preference
-            <input
+            <select
               value={form.remote_preference}
               onChange={(event) => setForm((state) => ({ ...state, remote_preference: event.target.value }))}
-            />
+            >
+              <option value="remote_or_hybrid">Remote or hybrid</option>
+              <option value="remote">Remote only</option>
+              <option value="hybrid">Hybrid only</option>
+              <option value="onsite">On-site is okay</option>
+            </select>
           </label>
           <label className="span-2">
-            Description
+            Short description
             <textarea
               rows={3}
               value={form.description}
               onChange={(event) => setForm((state) => ({ ...state, description: event.target.value }))}
+              placeholder="Example: Focus on backend and platform roles using Python, APIs, and cloud tooling."
             />
           </label>
           <label>
-            Target roles
+            Job titles to match
             <input
               value={form.target_roles}
               onChange={(event) => setForm((state) => ({ ...state, target_roles: event.target.value }))}
@@ -134,7 +181,7 @@ export function ProfilesPage() {
             />
           </label>
           <label>
-            Skills
+            Main skills
             <input
               value={form.skills}
               onChange={(event) => setForm((state) => ({ ...state, skills: event.target.value }))}
@@ -142,7 +189,7 @@ export function ProfilesPage() {
             />
           </label>
           <label>
-            Target keywords
+            Helpful keywords
             <input
               value={form.target_keywords}
               onChange={(event) => setForm((state) => ({ ...state, target_keywords: event.target.value }))}
@@ -150,7 +197,7 @@ export function ProfilesPage() {
             />
           </label>
           <label>
-            Avoid keywords
+            Keywords to avoid
             <input
               value={form.avoid_keywords}
               onChange={(event) => setForm((state) => ({ ...state, avoid_keywords: event.target.value }))}
@@ -158,7 +205,7 @@ export function ProfilesPage() {
             />
           </label>
           <label>
-            Seniority preferences
+            Seniority
             <input
               value={form.seniority_preferences}
               onChange={(event) => setForm((state) => ({ ...state, seniority_preferences: event.target.value }))}
@@ -166,24 +213,24 @@ export function ProfilesPage() {
             />
           </label>
           <label className="span-2">
-            Company preferences
+            Preferred companies or industries
             <input
               value={form.company_preferences}
               onChange={(event) => setForm((state) => ({ ...state, company_preferences: event.target.value }))}
-              placeholder="open source, infrastructure, developer tools"
+              placeholder="open source, fintech, infrastructure"
             />
           </label>
           <label className="span-2">
-            Authorization notes
+            Optional work authorization notes
             <textarea
               rows={3}
               value={form.authorization_notes}
               onChange={(event) => setForm((state) => ({ ...state, authorization_notes: event.target.value }))}
-              placeholder="Any work authorization or visa-related notes you want the scorer to consider."
+              placeholder="Example: Prefer roles that clearly state sponsorship or work authorization rules."
             />
           </label>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Profile"}
+            {isSubmitting ? "Saving..." : "Save profile"}
           </button>
           {error ? <p className="error-text span-2">{error}</p> : null}
           {message ? <p className="success-text span-2">{message}</p> : null}
@@ -192,9 +239,10 @@ export function ProfilesPage() {
 
       <section className="card">
         <div className="section-title">
-          <h2>Active profiles</h2>
-          <p className="muted">These are the tracks jobs will be scored against during import and sync.</p>
+          <h2>Your profiles</h2>
+          <p className="muted">These profiles are used when the app ranks each job.</p>
         </div>
+        {profiles.length === 0 ? <p className="muted">No profiles yet. Use the form above to create your first one.</p> : null}
         {profiles.map((profile) => (
           <article key={profile.id} className="stack-card">
             <strong>{profile.name}</strong>

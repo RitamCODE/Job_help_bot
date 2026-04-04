@@ -26,7 +26,7 @@ export function ResumesPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!file || !name.trim()) {
-      setError("Choose a resume file and provide a resume name.");
+      setError("Choose a resume file and give it a name.");
       return;
     }
 
@@ -46,7 +46,7 @@ export function ResumesPage() {
         extracted_characters?: number;
       };
       setSuccess(
-        `Uploaded ${response.original_filename ?? file.name} and extracted ${response.extracted_characters ?? 0} characters.`,
+        `Uploaded ${response.original_filename ?? file.name}. Extracted ${response.extracted_characters ?? 0} characters.`,
       );
       setFile(null);
       setName("");
@@ -67,24 +67,27 @@ export function ResumesPage() {
     <div className="page">
       <section className="card">
         <div className="section-title">
-          <h2>Resume variants</h2>
-          <p className="muted">Upload PDF, DOCX, TXT, or Markdown resumes and store the extracted text locally.</p>
+          <h2>Upload your resume</h2>
+          <p className="muted">
+            You can upload PDF, DOCX, TXT, or Markdown files. The app stores extracted text locally so it can compare
+            your background against job descriptions.
+          </p>
         </div>
-        <form className="upload-form" onSubmit={(event) => void handleSubmit(event)}>
+        <form className="upload-form two-column-form" onSubmit={(event) => void handleSubmit(event)}>
           <label>
             Resume name
-            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Backend Resume" />
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="General Resume" />
           </label>
           <label>
-            Variant type
-            <input value={variantType} onChange={(event) => setVariantType(event.target.value)} placeholder="backend" />
+            Resume type
+            <input value={variantType} onChange={(event) => setVariantType(event.target.value)} placeholder="backend, ml, general" />
           </label>
-          <label>
+          <label className="span-2">
             Tags
             <input value={tags} onChange={(event) => setTags(event.target.value)} placeholder="backend, python, api" />
           </label>
-          <label>
-            Resume file
+          <label className="span-2">
+            Choose file
             <input
               id="resume-file"
               type="file"
@@ -92,25 +95,35 @@ export function ResumesPage() {
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
           </label>
-          <label className="checkbox-row">
+          <label className="checkbox-row span-2">
             <input type="checkbox" checked={isDefault} onChange={(event) => setIsDefault(event.target.checked)} />
-            Set as default resume
+            Use this as my default resume
           </label>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Uploading..." : "Upload Resume"}
+            {isSubmitting ? "Uploading..." : "Upload resume"}
           </button>
-          {error ? <p className="error-text">{error}</p> : null}
-          {success ? <p className="success-text">{success}</p> : null}
+          {error ? <p className="error-text span-2">{error}</p> : null}
+          {success ? <p className="success-text span-2">{success}</p> : null}
         </form>
       </section>
 
       <section className="card">
+        <div className="section-title">
+          <h2>Your resumes</h2>
+          <p className="muted">You can keep more than one version, for example a general resume and an AI-focused one.</p>
+        </div>
+        {resumes.length === 0 ? <p className="muted">No resumes yet. Upload one above to get started.</p> : null}
         {resumes.map((resume) => (
           <article key={resume.id} className="stack-card">
             <strong>{resume.name}</strong>
-            <p className="muted">{resume.variant_type || "Generic variant"}</p>
+            <p className="muted">
+              {resume.variant_type || "General"} {resume.is_default ? "· Default" : ""}
+            </p>
             <p className="muted">Tags: {resume.tags.join(", ") || "None"}</p>
-            <p>{resume.text_content}</p>
+            <details>
+              <summary>Preview extracted text</summary>
+              <p>{resume.text_content}</p>
+            </details>
           </article>
         ))}
       </section>

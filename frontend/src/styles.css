@@ -262,6 +262,81 @@ textarea {
   cursor: not-allowed;
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.75rem 1.1rem;
+  background: #14213d;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button-link.secondary,
+.secondary-button {
+  background: #f1f4f9;
+  color: #14213d;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.setup-card {
+  padding: 1rem;
+  border: 1px solid rgba(20, 33, 61, 0.1);
+  border-radius: 18px;
+  background: #fffdf8;
+}
+
+.setup-card.done {
+  background: #f1fbf4;
+}
+
+.step-index {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8d5a00;
+}
+
+.template-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.friendly-form {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.friendly-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.friendly-form input,
+select {
+  border: 1px solid rgba(20, 33, 61, 0.15);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
 pre {
   white-space: pre-wrap;
   word-break: break-word;
