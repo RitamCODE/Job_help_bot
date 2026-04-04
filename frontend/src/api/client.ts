@@ -1,12 +1,21 @@
 ﻿const API_BASE = "http://127.0.0.1:8000";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (!(init?.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers,
   });
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      throw new Error(payload.detail || `Request failed: ${response.status}`);
+    } catch {
+      throw new Error(`Request failed: ${response.status}`);
+    }
   }
   if (response.status === 204) {
     return undefined as T;
@@ -26,6 +35,7 @@ export const api = {
   createProfile: (payload: unknown) => request("/profiles", { method: "POST", body: JSON.stringify(payload) }),
   getResumes: () => request("/resumes"),
   createResume: (payload: unknown) => request("/resumes", { method: "POST", body: JSON.stringify(payload) }),
+  uploadResume: (payload: FormData) => request("/resumes/upload", { method: "POST", body: payload }),
   getSources: () => request("/sources"),
   runSync: (payload: unknown) => request("/sync/run", { method: "POST", body: JSON.stringify(payload) }),
   getRuns: () => request("/sync/runs"),

@@ -13,6 +13,7 @@ OpenJobs Local is a local-first job aggregation platform with a FastAPI backend,
 
 - Jobs are stored once and scored many times across active search profiles.
 - Ollama is used when available.
+- The default Ollama recommendation is `qwen2.5:3b-instruct`, chosen for a better quality-to-hardware tradeoff on local consumer machines.
 - A deterministic fallback scorer keeps the application usable when Ollama is offline.
 - Resume tailoring suggestions are phrased as emphasis recommendations only.
 

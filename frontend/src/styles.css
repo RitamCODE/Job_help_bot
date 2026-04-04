@@ -144,6 +144,63 @@ td {
   border-top: 1px solid rgba(20, 33, 61, 0.08);
 }
 
+.upload-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.upload-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.upload-form input {
+  border: 1px solid rgba(20, 33, 61, 0.15);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+}
+
+.upload-form button {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8rem 1.2rem;
+  background: #14213d;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.upload-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: 0.65rem !important;
+  font-weight: 500 !important;
+}
+
+.checkbox-row input {
+  width: auto;
+  margin: 0;
+}
+
+.error-text {
+  color: #9d0208;
+  margin: 0;
+}
+
+.success-text {
+  color: #1b4332;
+  margin: 0;
+}
+
 pre {
   white-space: pre-wrap;
   word-break: break-word;

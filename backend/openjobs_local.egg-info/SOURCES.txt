@@ -49,6 +49,7 @@ app/services/__init__.py
 app/services/dedupe.py
 app/services/jobs.py
 app/services/profiles.py
+app/services/resume_parser.py
 app/services/resumes.py
 app/services/settings.py
 app/services/sync.py
@@ -62,3 +63,4 @@ openjobs_local.egg-info/top_level.txt
 tests/test_connectors.py
 tests/test_dedupe.py
 tests/test_ranking.py
+tests/test_resume_parser.py

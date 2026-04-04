@@ -25,3 +25,9 @@ class ResumeUpdate(BaseModel):
 
 class ResumeResponse(ORMBase, ResumeBase):
     id: int
+
+
+class ResumeUploadResponse(ResumeResponse):
+    original_filename: str | None = None
+    detected_format: str | None = None
+    extracted_characters: int | None = None
