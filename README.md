@@ -1,6 +1,54 @@
-﻿# OpenJobs Local
+# OpenJobs Local
 
-OpenJobs Local is an open-source, local-first job aggregation and prioritization platform for multi-track job searches. Users can collect jobs from multiple sources, normalize and deduplicate them, score them against one or more search profiles with a local Ollama model, and manage application workflow from a simple dashboard.
+OpenJobs Local is an open-source, local-first job aggregation and prioritization app for multi-track job searches.
+
+It helps users:
+
+- collect jobs from multiple sources
+- normalize and deduplicate them into one local database
+- score jobs against one or more job search profiles
+- use a local Ollama model for fit analysis
+- upload and manage multiple resume variants
+- track job status from inbox to offer
+
+This project is designed as a reusable GitHub project, not a one-off personal script.
+
+## Product goals
+
+OpenJobs Local is built around a few core ideas:
+
+- open source and reusable
+- local-first by default
+- no paid API requirement
+- configurable for many users and many job targets
+- honest about unstable or restricted platforms
+- modular connector architecture
+- practical MVP first, but organized like a real product
+
+## Who this is for
+
+The app is meant for:
+
+- technical users who want local control
+- semi-technical users who want a cleaner workflow without relying on scripts
+- people managing more than one job track at the same time
+
+Example profile setup:
+
+- Software Engineer
+- Backend Engineer
+- Full Stack Engineer
+- AI Engineer
+- Machine Learning Engineer
+- Data Engineer
+- Platform Engineer
+
+Each job can be scored against multiple profiles, and the app can show:
+
+- best matching profile
+- profile-specific fit scores
+- missing skills by profile
+- resume emphasis suggestions
 
 ## What it does
 
@@ -12,6 +60,7 @@ OpenJobs Local is an open-source, local-first job aggregation and prioritization
 - Supports direct resume upload for PDF, DOCX, TXT, and Markdown files.
 - Supports manual workflow states like inbox, saved, applied, rejected, interview, and offer.
 - Runs scheduled source syncs with APScheduler.
+- Works even when Ollama is unavailable by falling back to deterministic scoring.
 
 ## What it does not do
 
@@ -19,10 +68,11 @@ OpenJobs Local is an open-source, local-first job aggregation and prioritization
 - It does not require paid APIs.
 - It does not fabricate resume content or unsupported experience.
 - It does not depend on Ollama being available to function.
+- It does not currently store original uploaded resume binaries; it stores extracted text.
 
-## MVP Status
+## Current status
 
-Implemented now:
+The app is now beyond a bare scaffold. The current build includes:
 
 - FastAPI backend
 - SQLite via SQLAlchemy
@@ -31,20 +81,45 @@ Implemented now:
 - Manual URL import
 - Multi-profile scoring pipeline
 - Ollama client with graceful fallback
+- Resume upload and parsing
 - Deduplication and raw record storage
-- Basic React/Vite dashboard
+- React/Vite frontend with user-facing workflow pages
 - Scheduler and connector run logging
 - Seed data and sample settings
 
-Scaffolded honestly for later:
+Frontend workflow currently supports:
+
+- guided dashboard setup
+- profile creation
+- resume upload
+- source configuration for Greenhouse and Lever
+- manual job import
+- source sync triggering
+- job status updates
+- job notes
+- rescoring from the job detail page
+
+Still intentionally limited or deferred:
 
 - Wellfound
 - LinkedIn helper ingestion
 - Indeed helper ingestion
 - Twitter/X discovery
 - Generic company careers framework
+- richer analytics
+- import/export polish
 
-## Project Structure
+## Architecture overview
+
+- Backend: FastAPI + SQLAlchemy + SQLite
+- Frontend: React + Vite
+- LLM: Ollama with fallback scorer
+- Scheduler: APScheduler
+- Connector model: abstract base connector with per-source implementations
+
+More detail: [docs/architecture.md](./docs/architecture.md)
+
+## Project structure
 
 ```text
 backend/
@@ -71,19 +146,9 @@ frontend/
 docs/
 ```
 
-## Architecture Overview
+## Data model
 
-- Backend: FastAPI + SQLAlchemy + SQLite
-- Frontend: React + Vite
-- LLM: Ollama with fallback scorer
-- Scheduler: APScheduler
-- Connector model: abstract base connector with per-source implementations
-
-More detail: [docs/architecture.md](./docs/architecture.md)
-
-## Data Model
-
-Core tables/models included in the MVP:
+Core tables/models included in the project:
 
 - `jobs`
 - `raw_job_records`
@@ -97,9 +162,9 @@ Core tables/models included in the MVP:
 - `job_notes`
 - `dedupe_links`
 
-## Supported Connectors
+## Supported connectors
 
-Working:
+Working today:
 
 - Greenhouse-hosted boards
 - Lever-hosted boards
@@ -113,7 +178,164 @@ Experimental or stubbed:
 - Twitter/X discovery
 - Generic company careers framework
 
-## Local Setup
+## How a normal user uses the app
+
+The intended user flow is:
+
+1. Start the backend and frontend locally.
+2. Open the dashboard.
+3. Create one or more search profiles.
+4. Upload one or more resume versions.
+5. Turn on job sources and enter their settings.
+6. Run sync or paste job links manually.
+7. Review ranked jobs in the jobs list.
+8. Open a job and update its status, add notes, and track progress.
+
+The dashboard now includes a guided setup checklist so users do not need to guess the order.
+
+## User-facing pages
+
+### Dashboard
+
+The dashboard is the main home screen. It provides:
+
+- getting started checklist
+- manual job import form
+- sync button
+- high-level stats
+- searchable jobs list
+
+### Profiles
+
+The profiles page is where users define what they are looking for.
+
+Each profile can include:
+
+- name
+- description
+- target roles
+- preferred locations
+- remote preference
+- helpful keywords
+- avoid keywords
+- skills
+- seniority preferences
+- company preferences
+- authorization notes
+
+The page includes starter templates such as:
+
+- Software Engineer
+- AI / ML Engineer
+- Data Engineer
+
+### Resumes
+
+The resumes page supports uploading:
+
+- `.pdf`
+- `.docx`
+- `.txt`
+- `.md`
+
+Uploaded resumes are parsed locally and stored as extracted text in the database.
+
+### Sources
+
+The sources page supports:
+
+- turning sources on and off
+- configuring Greenhouse board tokens
+- configuring Lever company slugs
+- viewing recent sync runs
+
+The goal is to keep common source setup understandable without asking users to edit raw JSON.
+
+### Job detail
+
+The job detail page supports:
+
+- reviewing normalized job information
+- viewing all available scores
+- rescoring
+- changing status
+- adding notes
+- reviewing missing skills and red flags
+
+## Ranking and Ollama
+
+Each job can be scored against one or more active search profiles.
+
+For each job-profile pair, the system stores:
+
+- fit score
+- fit label
+- summary
+- top matches
+- missing skills
+- red flags
+- recommendation
+- resume keywords
+- resume tailoring suggestions
+- outreach message
+- raw model output
+
+The prompt uses:
+
+- profile data
+- linked resume text
+- job description
+- scoring weights
+- avoid rules
+
+Important rule:
+
+- resume suggestions are phrased as emphasis recommendations only
+- the app should not fabricate experience
+
+## Default model
+
+Default Ollama model:
+
+- `qwen2.5:3b-instruct`
+
+Why this default:
+
+- better fit for local-first use on common laptops
+- better quality-to-hardware tradeoff than `llama3.1:8b` for many users
+- strong enough for structured ranking and fit summaries
+- more practical for systems with lower VRAM
+
+If a user has stronger hardware, they can swap the model in `.env`.
+
+## Hardware guidance
+
+This project is intentionally aimed at consumer hardware, not only workstation-class setups.
+
+For example:
+
+- users with lower-VRAM laptop GPUs may prefer smaller Ollama models
+- `qwen2.5:3b-instruct` is a more practical default than larger 7B or 8B models on modest machines
+
+## Python and Node versions
+
+Preferred Python version:
+
+- Python `3.11`
+
+This is the recommended version for the backend and matches the project requirement in [backend/pyproject.toml](./backend/pyproject.toml).
+
+Recommended frontend runtime:
+
+- current Node LTS is the safest default
+
+The frontend is currently set up with:
+
+- React 18
+- Vite 5
+- TypeScript 5
+
+## Local setup
 
 ### 1. Clone and configure
 
@@ -123,25 +345,44 @@ cd Job_help_bot
 cp .env.example .env
 ```
 
-### 2. Backend
+### 2. Backend setup with Conda
 
-```bash
+If you use Miniconda or Anaconda, this is the recommended setup:
+
+```powershell
+conda create -n openjobs-local python=3.11 -y
+conda activate openjobs-local
 cd backend
-python -m venv .venv
-.venv\Scripts\activate
 pip install -e .[dev]
+```
+
+Then start the backend:
+
+```powershell
 uvicorn app.main:app --reload
 ```
 
-### 3. Frontend
+Backend health check:
 
-```bash
+- [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
+
+### 3. Frontend setup
+
+Install Node.js first if `npm` is not available.
+
+Then:
+
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-### 4. Ollama
+Frontend dev server:
+
+- [http://localhost:5173](http://localhost:5173)
+
+### 4. Ollama setup
 
 Install Ollama locally and pull the default model:
 
@@ -152,14 +393,21 @@ ollama serve
 
 If Ollama is not running, the app still works and uses a deterministic fallback scorer.
 
-Default recommendation:
+## Environment configuration
 
-- `qwen2.5:3b-instruct` is the default Ollama model for this project.
-- It is a better fit for local-first use on lower-VRAM machines than `llama3.1:8b`.
-- This app mainly needs structured ranking, fit summaries, missing-skill extraction, and truthful resume emphasis suggestions, so a smaller instruct model is a practical default.
-- Users with stronger hardware can still switch models through `.env`.
+Important environment values are defined in [.env.example](./.env.example):
 
-## API Endpoints
+- `APP_NAME`
+- `DATABASE_URL`
+- `OLLAMA_BASE_URL`
+- `OLLAMA_MODEL`
+- `OLLAMA_TIMEOUT_SECONDS`
+- `OLLAMA_RETRIES`
+- `SCHEDULER_ENABLED`
+- `DEFAULT_SYNC_INTERVAL_MINUTES`
+- `ENABLE_SAMPLE_DATA`
+
+## API endpoints
 
 - `GET /health`
 - `GET /jobs`
@@ -187,49 +435,9 @@ Default recommendation:
 - `PATCH /settings`
 - `GET /analytics/summary`
 
-## How scoring works
-
-Each job can be scored against one or more active search profiles. For each job-profile pair, the system stores:
-
-- fit score
-- fit label
-- summary
-- top matches
-- missing skills
-- red flags
-- recommendation
-- resume keywords
-- resume tailoring suggestions
-- outreach message
-- raw model output
-
-The prompt uses profile data, linked resume text, job description, scoring weights, and avoid rules. Suggestions are phrased as resume emphasis guidance rather than fabricated claims.
-
-Current default model:
-
-- `qwen2.5:3b-instruct`
-
-Why this default:
-
-- Better local usability on common consumer laptops
-- Strong enough for structured job-to-profile comparison
-- Lower hardware burden than `llama3.1:8b`
-
-## How to extend connectors
-
-Create a new class inheriting from `BaseConnector` and implement:
-
-- `connector_name()`
-- `healthcheck()`
-- `fetch_jobs(config)`
-- `normalize(raw_job)`
-- `validate_config(config)`
-
-Then register it in `backend/app/services/sync.py`.
-
 ## Resume upload
 
-The MVP now supports resume upload from the frontend and backend API.
+The app supports direct resume upload from the frontend and backend API.
 
 Supported file types:
 
@@ -241,27 +449,35 @@ Supported file types:
 How it works:
 
 - Uploaded resumes are parsed locally on the backend.
-- Extracted text is stored in the existing `resumes` table.
-- The current MVP does not preserve original binary files; it stores extracted text for scoring and profile linking.
+- Extracted text is stored in the `resumes` table.
+- The current MVP does not preserve original binary files.
+- Parsed text is what gets used for scoring and tailoring suggestions.
+
+## Source configuration tips
+
+### Greenhouse
+
+Enter the board token.
+
+Example:
+
+- for `company-name.greenhouse.io`, use `company-name`
+
+### Lever
+
+Enter the company slug.
+
+Example:
+
+- for `jobs.lever.co/company-name`, use `company-name`
 
 ## Seed data and dev mode
 
 - Tables are auto-created on startup.
 - Seed profiles, resumes, sources, and one sample job are loaded when `ENABLE_SAMPLE_DATA=true`.
-- This makes the MVP easier to demo before connecting live boards.
+- This helps users see the app immediately before configuring real sources.
 
-## Known limitations
-
-- SQLite is the only persistence target in this MVP.
-- UI filters and editing flows are still minimal.
-- Bulk export/import is not implemented yet.
-- Experimental connectors are placeholders with interface hooks only.
-
-## Suggested license
-
-MIT is a practical default for a reusable open-source utility app.
-
-## Commands
+## Tests and verification
 
 Backend tests:
 
@@ -270,12 +486,50 @@ cd backend
 pytest
 ```
 
-Frontend build:
+Frontend production build:
 
 ```bash
 cd frontend
 npm run build
 ```
+
+## Known limitations
+
+- SQLite is the only persistence target in this version.
+- Profile-to-resume linking is still stronger in the data model/backend than in the frontend UI.
+- Bulk import/export is not fully implemented yet.
+- Experimental connectors are placeholders with interface hooks only.
+- PDF parsing quality depends on how extractable the source PDF is.
+- Some advanced source onboarding is still evolving.
+
+## Open-source readiness
+
+This repo already includes:
+
+- root README
+- architecture notes
+- roadmap
+- contribution guide
+- example environment file
+- sample profile/source config files
+
+Suggested license:
+
+- MIT
+
+## How to extend connectors
+
+Create a new class inheriting from `BaseConnector` and implement:
+
+- `connector_name()`
+- `healthcheck()`
+- `fetch_jobs(config)`
+- `normalize(raw_job)`
+- `validate_config(config)`
+
+Then register it in:
+
+- `backend/app/services/sync.py`
 
 ## Roadmap
 
